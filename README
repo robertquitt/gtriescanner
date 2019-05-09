@@ -1,7 +1,9 @@
 ----------------------------------------------------
 CS267 Project Notes:
 
-- Download/unzip http://www.dcc.fc.up.pt/gtries/lists.zip
+- Download/unzip
+  - http://www.dcc.fc.up.pt/gtries/gtries.zip
+  - http://www.dcc.fc.up.pt/gtries/s420_st.txt
 - Sanity check: make sure these two have the same output:
   - ./gtrieScanner -s 3 -m gtrie_parallel undir3.gt -g s420_st.txt
   - ./gtrieScanner -s 3 -m gtrie undir3.gt -g s420_st.txt
