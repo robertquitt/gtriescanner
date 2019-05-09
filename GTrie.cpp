@@ -472,6 +472,160 @@ void GTrieNode::goCondUndir() {
   }
 }
 
+void GTrieNode::goCondUndirParallel() {
+  int i, j, ci, mylim, glaux;
+  int ncand;
+  int *p;
+
+  mylim = INT_MAX;
+  if (!cond_ok) {
+    i = 1;
+    list< list<iPair> >::const_iterator jj, jjend;
+    list<iPair>::const_iterator kk, kkend;
+    for (jj=cond.begin(), jjend=cond.end(); jj!=jjend; ++jj) {
+      glaux = -1;
+      for (kk=(*jj).begin(), kkend=(*jj).end(); kk!=kkend; ++kk)
+	if (kk->second<glk && mymap[kk->first] > mymap[kk->second])
+	  break;
+	else if (kk->second==glk && mymap[kk->first]>glaux)
+	  glaux = mymap[kk->first];
+      if (kk==kkend) {
+	i = 0;
+	if (glaux < mylim) mylim=glaux;
+      }
+    }
+    if (i) return;
+  }
+  if (mylim == INT_MAX) mylim = 0;
+
+  ncand=0;
+  j=ci=INT_MAX;
+  for (i=0; i<nconn; i++) {
+    glaux = numnei[mymap[conn[i]]];
+    if (glaux<j) {
+      ci = mymap[conn[i]];
+      j = glaux;
+    }
+  }
+
+  glaux = j;
+  ncand = ci;
+  for (p=&fastnei[ncand][j-1], ci= glaux-1; ci>=0; ci--, p--) {
+    i = *p;
+    if (i<mylim) break;
+    if (used[i]) continue;
+    mymap[glk] = i;
+
+    bool *b = &adjM[i][0];
+    for (j=0; j<glk; j++)
+      if (out[j] != *(b+mymap[j]))
+	break;
+    if (j<glk) continue;
+
+    if (is_graph) {
+      frequency++;
+      if (Global::show_occ) {
+	for (int k = 0; k<=glk; k++)
+	  for (int l = 0; l<=glk; l++)
+	    fputc(adjM[mymap[k]][mymap[l]]?'1':'0', Global::occ_file);
+	fputc(':', Global::occ_file);
+	for (int k = 0; k<=glk; k++)
+	  fprintf(Global::occ_file, " %d", mymap[k]+1);
+	fputc('\n', Global::occ_file);
+      }
+    }
+
+    used[i]=true;
+    glk++;
+    list<GTrieNode *>::const_iterator ii, iiend;
+    for(ii=child.begin(), iiend = child.end(); ii!=iiend; ++ii)
+      (*ii)->goCondUndirParallel();
+    glk--;
+    used[i]=false;
+  }
+}
+
+void GTrieNode::goCondDirParallel() {
+  int i, j, ci, mylim, glaux;
+  int ncand;
+  int *p;
+
+
+  mylim = INT_MAX;
+  if (!cond_ok) {
+    i = 1;
+    list< list<iPair> >::const_iterator jj, jjend;
+    list<iPair>::const_iterator kk, kkend;
+    for (jj=cond.begin(), jjend=cond.end(); jj!=jjend; ++jj) {
+      glaux = -1;
+      for (kk=(*jj).begin(), kkend=(*jj).end(); kk!=kkend; ++kk)
+	if (kk->second<glk && mymap[kk->first] > mymap[kk->second])
+	  break;
+	else if (kk->second==glk && mymap[kk->first]>glaux)
+	  glaux = mymap[kk->first];
+      if (kk==kkend) {
+	i = 0;
+	if (glaux < mylim) mylim=glaux;
+      }
+    }
+    if (i) return;
+  }
+  if (mylim == INT_MAX) mylim = 0;
+
+  ncand=0;
+  j=ci=INT_MAX;
+  for (i=0; i<nconn; i++) {
+    glaux = numnei[mymap[conn[i]]];
+    if (glaux<j) {
+      ci = mymap[conn[i]];
+      j = glaux;
+    }
+  }
+
+  glaux = j;
+  ncand = ci;
+  for (p=&fastnei[ncand][j-1], ci= glaux-1; ci>=0; ci--, p--) {
+    i = *p;
+    if (i<mylim) break;
+    if (used[i]) continue;
+    mymap[glk] = i;
+
+    for (j=0; j<glk; j++)
+      if (in[j] != adjM[mymap[j]][i])
+	break;
+    if (j<glk) continue;
+    bool *b = &adjM[i][0];
+    for (j=0; j<glk; j++)
+      if (out[j] != *(b+mymap[j]))
+	break;
+    if (j<glk) continue;
+
+    if (is_graph) {
+      frequency++;
+      if (Global::show_occ) {
+	for (int k = 0; k<=glk; k++)
+	  for (int l = 0; l<=glk; l++)
+	    fputc(adjM[mymap[k]][mymap[l]]?'1':'0', Global::occ_file);
+	fputc(':', Global::occ_file);
+	for (int k = 0; k<=glk; k++)
+	  fprintf(Global::occ_file, " %d", mymap[k]+1);
+	fputc('\n', Global::occ_file);
+      }
+    }
+
+    used[i]=true;
+    glk++;
+    list<GTrieNode *>::const_iterator ii, iiend;
+    for(ii=child.begin(), iiend = child.end(); ii!=iiend; ++ii)
+    {
+#pragma omp task
+      (*ii)->goCondDirParallel();
+    }
+#pragma omp taskwait
+    glk--;
+    used[i]=false;
+  }
+}
 
 void GTrieNode::goCondDir() {
   int i, j, ci, mylim, glaux;
@@ -544,7 +698,9 @@ void GTrieNode::goCondDir() {
     glk++;
     list<GTrieNode *>::const_iterator ii, iiend;
     for(ii=child.begin(), iiend = child.end(); ii!=iiend; ++ii)
+    {
       (*ii)->goCondDir();
+    }
     glk--;
     used[i]=false;
   }
@@ -890,6 +1046,61 @@ int GTrie::maxDepth() {
 
 void GTrie::showFrequency() {
   return _root->showFrequency();
+}
+
+void GTrie::censusParallel(Graph *g) {
+# pragma omp parallel
+  {
+    int i;
+    int subgraph_size = maxDepth();
+    int num_nodes = g->numNodes();
+
+    _root->zeroFrequency();
+
+    GTrieNode::mymap = new int[subgraph_size];
+    GTrieNode::used  = new bool[num_nodes];
+    GTrieNode::numNodes = num_nodes;
+    GTrieNode::fastnei  = g->matrixNeighbours();
+    GTrieNode::adjM     = g->adjacencyMatrix();
+    GTrieNode::numnei   = g->arrayNumNeighbours();
+
+    if (g->type() == DIRECTED) GTrieNode::isdir = true;
+    else                       GTrieNode::isdir = false;
+    for (i=0; i<num_nodes; i++)
+      GTrieNode::used[i]=false;
+
+    GTrieNode *c = *(_root->child.begin());
+    list<GTrieNode *>::iterator ii;
+    GTrieNode::glk=1;
+
+    for (i = 0; i<num_nodes; i++) {
+      GTrieNode::mymap[0] = i;
+      GTrieNode::used[i]=true;
+      if (g->type() == DIRECTED)
+	for(ii=c->child.begin(); ii!=c->child.end(); ii++)
+	{
+#pragma omp single
+{
+#pragma omp task
+	  (*ii)->goCondDirParallel();
+}
+	}
+      else
+	for(ii=c->child.begin(); ii!=c->child.end(); ii++)
+	{
+#pragma omp single
+{
+#pragma omp task
+	  (*ii)->goCondUndirParallel();
+	  }
+	}
+      GTrieNode::used[i]=false;
+    }
+
+  }
+#pragma omp taskwait
+  delete [] GTrieNode::mymap;
+  delete [] GTrieNode::used;
 }
 
 void GTrie::census(Graph *g) {

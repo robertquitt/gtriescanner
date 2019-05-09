@@ -123,6 +123,21 @@ void CmdLine::run_gtrie(Graph *g, GraphTree *sg) {
   gt_original->populateGraphTree(sg, motif_size);
 }
 
+// Run GTRIES method on graph 'g' and store results on GraphTree 'gt'
+void CmdLine::run_gtrie_parallel(Graph *g, GraphTree *sg) {
+  printf("Reading G-Trie\n");
+  gt_original = new GTrie();
+  Timer::start(0);
+  gt_original->readFromFile(gtrie_file);
+  Timer::stop(0);
+  printf("Creation time: %.2f\n", Timer::elapsed(0));
+  printf("Compression rate = %.2f%%\n\n", gt_original->compressionRate()*100);
+
+  /* gt_original->census(g); */
+  gt_original->censusParallel(g);
+  gt_original->populateGraphTree(sg, motif_size);
+}
+
 // ----------------------------------------------
 
 // Compare two different motif results (for sorting)
@@ -216,6 +231,7 @@ void CmdLine::compute_original() {
   if (method == ESU) run_esu(g, &sg_original);
   else if (method == SUBGRAPHS) run_subgraphs(g, &sg_original);
   else if (method == GTRIE) run_gtrie(g, &sg_original);
+  else if (method == GTRIE_PARALLEL) run_gtrie_parallel(g, &sg_original);
   Timer::stop(0);  
   printf("%d subgraphs, ",   sg_original.countGraphs());
   printf("%.0f occurrences\n", sg_original.countOccurrences());
@@ -494,6 +510,7 @@ MethodType CmdLine::str_to_method(char *s) {
   if      (!strcmp(s, "esu"))       return ESU;
   else if (!strcmp(s, "gtrie"))     return GTRIE;
   else if (!strcmp(s, "subgraphs")) return SUBGRAPHS;
+  else if (!strcmp(s, "gtrie_parallel")) return GTRIE_PARALLEL;
   else return NOMETHOD;
 }
 
@@ -553,6 +570,7 @@ void CmdLine::parse_cmdargs(int argc, char **argv) {
       method = str_to_method(argv[++i]);
       if (method == SUBGRAPHS) strcpy(subgraphs_file, argv[++i]);
       else if (method == GTRIE) strcpy(gtrie_file, argv[++i]);
+      else if (method == GTRIE_PARALLEL) strcpy(gtrie_file, argv[++i]);
     }
 
     // Graph format

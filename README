@@ -1,4 +1,13 @@
 ----------------------------------------------------
+CS267 Project Notes:
+
+- Download/unzip http://www.dcc.fc.up.pt/gtries/lists.zip
+- Sanity check: make sure these two have the same output:
+  - ./gtrieScanner -s 3 -m gtrie_parallel undir3.gt -g s420_st.txt
+  - ./gtrieScanner -s 3 -m gtrie undir3.gt -g s420_st.txt
+- For benchmarking, make sure to set -O0 back to -O3 and remove -g
+
+----------------------------------------------------
       _       _     ___                            
  __ _| |_ _ _(_)___/ __| __ __ _ _ _  _ _  ___ _ _ 
 / _` |  _| '_| / -_)__ \/ _/ _` | ' \| ' \/ -_) '_|

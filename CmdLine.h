@@ -71,6 +71,7 @@ class CmdLine {
   static void parse_cmdargs(int argc, char **argv);
   static void run_esu(Graph *g, GraphTree *sg);
   static void run_gtrie(Graph *g, GraphTree *sg);
+  static void run_gtrie_parallel(Graph *g, GraphTree *sg);
   static void run_subgraphs(Graph *g, GraphTree *sg);
 
   static MethodType str_to_method(char *s);

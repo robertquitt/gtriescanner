@@ -88,6 +88,8 @@ class GTrieNode {
 
   void goCondDir();
   void goCondUndir();
+  void goCondDirParallel();
+  void goCondUndirParallel();
   void goCondSample();
 
   void insertConditionsFiltered(list<iPair> *cond);
@@ -126,6 +128,7 @@ class GTrie {
   int maxDepth();
 
   void census(Graph *g);
+  void censusParallel(Graph *g);
   void censusSample(Graph *g, double *p);
 
   void showFrequency();

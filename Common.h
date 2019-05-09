@@ -62,7 +62,7 @@ Last Update: 11/02/2012
 #define DEFAULT_RESULTS "results"    // Default name for results file
 #define DEFAULT_OCC "occ"            // Default name for occurrences file
 
-typedef enum {NOMETHOD, ESU, GTRIE, SUBGRAPHS} MethodType;
+typedef enum {NOMETHOD, ESU, GTRIE, SUBGRAPHS, GTRIE_PARALLEL} MethodType;
 typedef enum {NOOUTPUT, TEXT, HTML}            OutputType;
 typedef enum {NOFORMAT, SIMPLE, SIMPLE_WEIGHT} FormatType;
 

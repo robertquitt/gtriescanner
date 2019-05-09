@@ -9,11 +9,12 @@
 EXEC_NAME=gtrieScanner
 
 # Compiler to use
+# CC=g++
 CC=g++
 
 # Default Options to use
-# CFLAGS= -Wall -Wno-write-strings -O0 -g
-CFLAGS= -Wno-write-strings -O3 
+CFLAGS= -Wall -Wno-write-strings -O0 -g -fopenmp
+# CFLAGS= -Wno-write-strings -O3 
 #CFLAGSFINAL= -O3
 CLIBS=
 
